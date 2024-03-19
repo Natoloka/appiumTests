@@ -24,8 +24,8 @@ exports.config = {
     // of the config file unless it's absolute.
     //
     specs: [
-        './test/specs/**/*.js'
-        // './test/specs/android/*.js'
+        // './test/specs/**/*.js'
+        './test/specs/android/*.js'
     ],
     // Patterns to exclude.
     exclude: [
@@ -59,9 +59,10 @@ exports.config = {
         'appium:deviceName': 'Pixel 4',
         'appium:automationName': 'UIAutomator2',
         // 'app': path.join(process.cwd(), 'app\\android\\ApiDemos-debug.apk'),
-        'appium:app': 'app/android/ApiDemos-debug.apk'//,
-        // 'appium:app': 'app/android/ColorNote Notepad.apk'//,
+        // 'appium:app': 'app/android/ApiDemos-debug.apk'//,
+        'appium:app': 'app/android/ColorNote Notepad.apk',
         // 'browserName': 'chromium'
+        "appium:autoGrantPermissions": true // grants permission to open apk file
     }],
 
     //
