@@ -3,12 +3,12 @@ const { config } = require('./wdio.conf');
 config.port = 4724;
 
 config.specs = [
-    './test/specs/android/*.js'
+    '../test/specs/android/add-note.spec.js'
 ];
 
 config.capabilities = [
     {
-        'appium:platformName': 'Android',
+        'platformName': 'Android',
         'appium:platformVersion': '11.0',
         'appium:deviceName': 'Pixel 4',
         'appium:automationName': 'UIAutomator2',

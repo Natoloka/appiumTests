@@ -1,3 +1,4 @@
+const allure = require('allure-commandline');
 const path = require('path');
 
 exports.config = {
@@ -6,7 +7,7 @@ exports.config = {
     // Runner Configuration
     // ====================
     // WebdriverIO supports running e2e tests as well as unit and component tests.
-    port:4724,//default port
+    // port:4724,//default port
     runner: 'local',
     //
     // ==================
@@ -23,10 +24,13 @@ exports.config = {
     // The path of the spec files will be resolved relative from the directory of
     // of the config file unless it's absolute.
     //
-    specs: [
-        // './test/specs/**/*.js'
-        './test/specs/android/*.js'
-    ],
+    //!!!!!commented because we use separate for ios and android
+    // specs: [
+    //     // './test/specs/**/*.js'
+    //     './test/specs/android/*.js'
+    // ],
+    //!!!!!
+    //
     // Patterns to exclude.
     exclude: [
         // 'path/to/excluded/files'
@@ -53,18 +57,19 @@ exports.config = {
     // Sauce Labs platform configurator - a great tool to configure your capabilities:
     // https://saucelabs.com/platform/platform-configurator
     //
-    capabilities: [{
-        'appium:platformName': 'Android',
-        'appium:platformVersion': '11.0',
-        'appium:deviceName': 'Pixel 4',
-        'appium:automationName': 'UIAutomator2',
-        // 'app': path.join(process.cwd(), 'app\\android\\ApiDemos-debug.apk'),
-        // 'appium:app': 'app/android/ApiDemos-debug.apk'//,
-        'appium:app': 'app/android/ColorNote Notepad.apk',
-        // 'browserName': 'chromium'
-        "appium:autoGrantPermissions": true // grants permission to open apk file
-    }],
-
+    //!!!!!!commented because we use separate configurations for android and ios
+    // capabilities: [{
+    //     'appium:platformName': 'Android',
+    //     'appium:platformVersion': '11.0',
+    //     'appium:deviceName': 'Pixel 4',
+    //     'appium:automationName': 'UIAutomator2',
+    //     // 'app': path.join(process.cwd(), 'app\\android\\ApiDemos-debug.apk'),
+    //     // 'appium:app': 'app/android/ApiDemos-debug.apk'//,
+    //     'appium:app': 'app/android/ColorNote Notepad.apk',
+    //     // 'browserName': 'chromium'
+    //     "appium:autoGrantPermissions": true // grants permission to open apk file
+    // }],
+    //!!!!!
     //
     // ===================
     // Test Configurations
@@ -116,7 +121,8 @@ exports.config = {
         ['appium', {
             args:{
                 address: 'localhost',
-                port: 4724
+                port: 4724,
+                relaxedSecurity:true
             },
             command: 'appium',
             logPath: './'
@@ -144,7 +150,11 @@ exports.config = {
     // Test reporter for stdout.
     // The only one supported by default is 'dot'
     // see also: https://webdriver.io/docs/dot-reporter
-    reporters: ['spec'],
+    reporters: ['spec', ['allure', {
+        outputDir: 'allure-results',
+        disableWebdriverStepsReporting: false,
+        disableWebdriverScreenshotsReporting: false,
+    }]],
 
     // Options to be passed to Mocha.
     // See the full list at http://mochajs.org/
@@ -247,8 +257,11 @@ exports.config = {
      * @param {boolean} result.passed    true if test has passed, otherwise false
      * @param {object}  result.retries   information about spec related retries, e.g. `{ attempts: 0, limit: 0 }`
      */
-    // afterTest: function(test, context, { error, result, duration, passed, retries }) {
-    // },
+    afterTest: async function (test, context, { error, result, duration, passed, retries }) {
+        if (error) {
+            await driver.takeScreenshot();
+        }
+    },
 
 
     /**
@@ -291,8 +304,26 @@ exports.config = {
      * @param {Array.<Object>} capabilities list of capabilities details
      * @param {<Object>} results object containing test results
      */
-    // onComplete: function(exitCode, config, capabilities, results) {
-    // },
+    onComplete: function (exitCode, config, capabilities, results) {
+                const reportError = new Error('Could not generate Allure report')
+        const generation = allure(['generate', 'allure-results', '--clean'])
+        return new Promise((resolve, reject) => {
+            const generationTimeout = setTimeout(
+                () => reject(reportError),
+                5000)
+
+            generation.on('exit', function(exitCode) {
+                clearTimeout(generationTimeout)
+
+                if (exitCode !== 0) {
+                    return reject(reportError)
+                }
+
+                console.log('Allure report successfully generated')
+                resolve()
+            })
+        })
+    },
     /**
     * Gets executed when a refresh happens.
     * @param {string} oldSessionId session ID of the old session
